@@ -19,15 +19,11 @@ import psycopg2
 import requests
 from io import BytesIO
 
-# inputdsm_path = os.getcwd() + "/files/DSM.gtif"        # che viene estratta dallo zip
-# rastshpdsm_path = os.getcwd() + "/DSM_rastshp.gtif"
 inputshp_path = os.getcwd() + "/files/elevation.shp"   # questi due path sono diversi perchè sono contenuti nella cartella 
 intrpshp_path = os.getcwd() + "/elevation_intrp.shp"
 smoothshp_path = os.getcwd() + "/elevation_smooth.shp"
 splitshp_path = os.getcwd() + "/elevation_split.shp"
 chaintickshp_path = os.getcwd() + "/output_lines.shp"
-# jsonfull_path = os.getcwd() + "/ElevationValues_full.json"
-# jsontrain_path = os.getcwd() + "/ElevationValues_training.json"
 
 result_txt = os.getcwd()+"/result.txt"
 
@@ -114,119 +110,6 @@ def chaikins_smoothing(shp_path, refinements):
     newshp_geodf.to_file(smoothshp_path)
     return
 
-
-# def rasterize_shp2dsm(indsm_path, output_path, shp_path):
-#     '''Rasterize Shapefile of perpendicular ticks to a NODATA DSM'''
-#     shpds = ogr.Open(shp_path)
-#     shpds_layer = shpds.GetLayer()
-#     orig_ds = gdal.Open(indsm_path)
-#     target_ds = gdal.GetDriverByName("GTiff").Create(output_path, xsize=orig_ds.RasterXSize, ysize=orig_ds.RasterYSize, 
-#                                                   bands=1, eType=gdal.GDT_Float32)
-#     target_ds.SetGeoTransform(orig_ds.GetGeoTransform())
-#     target_ds.SetProjection(orig_ds.GetProjection())
-#     target_ds.GetRasterBand(1).SetNoDataValue(np.nan) # set default nodata value
-#     void_arr = np.array([[np.nan]], dtype = np.float32) # create nodata array to be used for filling the new raster
-#     target_ds.GetRasterBand(1).WriteArray(void_arr) # overwrite original raster entirely with nodata
-#     gdal.RasterizeLayer(target_ds, [1], shpds_layer, options = ["ATTRIBUTE=ID"])
-#     target_ds.FlushCache() # clear the buffer, and ensure file is written
-
-#     prova_ds = gdal.GetDriverByName("GTiff").Create(prova_path, xsize=orig_ds.RasterXSize, ysize=orig_ds.RasterYSize, 
-#                                                   bands=1, eType=gdal.GDT_Float32,
-#                                                   options=["TILED=YES",
-#                                                   "COMPRESS=LZW",
-#                                                   "INTERLEAVE=BAND"])
-#     prova_ds.GetRasterBand(1).SetNoDataValue(np.nan) # set default nodata value
-#     return
-
-
-# def extract_rastcoords(rastdsm_path):
-#     '''Save all extracted coordinates of rasterized segments in order of gray values'''
-#     pxdict = defaultdict(list) # as of Python version 3.7, dictionaries are ordered
-#     img = cv2.imread(rastdsm_path, -1) # returns ndarray, y-x order
-#     yx_valid_coords = np.column_stack(np.where(img >= int(np.nanmin(img))))
-    
-#     #print(int(np.nanmax(img)))
-#     #for gray in range(4403, 4903):
-#     for gray in range(int(np.nanmin(img)), int(np.nanmax(img)+1)):  # max range we need is given by int(np.nanmax(img)+1)    
-#         yx_gray_indices = np.column_stack(np.where(img[yx_valid_coords[:,0],yx_valid_coords[:,1]] == gray)) # create column-stacked ndarray of yx indices
-#         yx_gray_coords = np.column_stack([yx_valid_coords[yx_gray_indices,0],yx_valid_coords[yx_gray_indices,1]]) # create column-stacked ndarray of yx coords
-#         #print(yx_gray_coords.shape) # some shapes are different, less points, could be a problem
-#         tuplist = list(map(tuple, yx_gray_coords)) # convert ndarray to a list of tuples
-#         #print(tuplist)
-#         pxdict[gray].append(tuplist)  # fill dict, key is "grey band/id" of rasterized segment, value is array of all yx coordinates (in tuples)
-#     #print(pxdict)
-#     return pxdict
-
-
-# def save_dsmprofiles(indsm_path, rastdsm_path):
-#     '''Save all obtained profile values in a dictionary'''
-#     pxdict = extract_rastcoords(rastdsm_path)
-#     img = cv2.imread(indsm_path, -1) # returns ndarray, y-x order
-#     img_smooth = cv2.GaussianBlur(img,(27,27),0) # blur (Gaussian) input DSM in order to remove noise
-#     #print(type(img))
-#     #print(img.shape[0], img.shape[1])
-#     #graydict = defaultdict(list)
-#     graydict_smooth = defaultdict(list)
-#     for key in pxdict:
-#         valuelist = pxdict[key]
-#         pixels_of_interest = [val for sublist in valuelist for val in sublist] # flatten list of lists to a single list containing values
-#         #print(pixels_of_interest)
-#         indices_to_read = tuple(zip(*pixels_of_interest))  # make advanced index tuple (groups all y and x coordinates into two separate tuples)
-#         #print(indices_to_read)
-#         #gray_values = img[indices_to_read]  # read gray values on original DSM
-#         gray_values_smooth = img_smooth[indices_to_read]  # read gray values on smoothed DSM
-#         #print(gray_values)
-#         #print(type(gray_values_smooth))
-#         if any(value == -9999 for value in gray_values_smooth):  # if "ValueError: The truth value of an array is ambiguous", increase create_ticks distance value from 0.1 to higher
-#             print("NAN values found. Double check input data. Ending code execution.")   
-#             exit()
-#         #graydict[key].append(gray_values)
-#         graydict_smooth[key].append(gray_values_smooth) 
-#     #print(graydict)
-#     #print(graydict_smooth)
-#     return graydict_smooth
-
-
-# def export_dsmprofiles_dict(indsm_path, rastdsm_path, json_fpath, json_tpath):
-#     '''Manually classify terrain profiles and export them to JSON files'''
-#     valuedict = save_dsmprofiles(indsm_path, rastdsm_path)
-#     new_key = 'Status' # generic status label, key value will be 0 if not excavated, 1 if excavated
-#     fdigdict = {new_key: 0}
-#     tdigdict = {new_key: 1}
-#     fulldict = defaultdict(list)
-#     for key in valuedict:
-#         valuelist = valuedict[key]
-#         fulldict[key].append(valuelist)
-#         merged_range = chain(range(0,745), range(4172,5371)) # define which elevation profiles must be set to 1
-#         fulldict[key].append(tdigdict) if key in merged_range else fulldict[key].append(fdigdict)
-#     #print(new_valuedict)
-#     with open(json_fpath, 'w') as fpf:
-#         json.dump(fulldict, fpf, cls=NumpyEncoder)
-#     subdict = {x: fulldict[x] for x in range(int(len(fulldict)/2),int(len(fulldict)+1)) if x in fulldict}    
-#     with open(json_tpath, 'w') as fps:
-#         json.dump(subdict, fps, cls=NumpyEncoder)
-#     return
-    
-
-# def plot_dsmprofiles(indsm_path, rastdsm_path):
-#     '''Plot all profile values obtained from DSM'''
-#     valuedict = save_dsmprofiles(indsm_path, rastdsm_path)
-#     fig, ax = plt.subplots(nrows=1, ncols=1)
-#     for item in valuedict:
-#         vallist = valuedict[item]
-#         vals_of_interest = [val for sublist in vallist for val in sublist] # flatten list of lists to a single list containing values
-#         #vals_of_interest -= min(vals_of_interest) # subtract minimum from list, so that the plot is normalized (from 0 to max elevation)
-#         vals_of_interest = vals_of_interest-np.min(vals_of_interest)
-#         plt.plot(vals_of_interest*100) # from meters to centimeters
-#         ax.set_xlabel('Length [cm]')
-#         ax.set_ylabel('Elevation [cm]')
-#         ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x*0.5*10)) # arbitrary correction, num_points*pixel_size*10
-#         ax.xaxis.set_major_formatter(ticks)
-#         ax.set_title('Terrain Profile')
-#         fig.tight_layout()
-#     plt.show()
-#     return
-
 def insert_to_db(idCantiere):
     #connect to the db
     con = psycopg2.connect(
@@ -291,8 +174,3 @@ def run (url, distance, id):
     # invoco la funzione che inserisce i segmenti nel db
     insert_to_db(id)
     return
-    # rasterize_shp2dsm(inputdsm_path, rastshpdsm_path, chaintickshp_path)
-    #extract_rastcoords(rastshpdsm_path)
-    #save_dsmprofiles(inputdsm_path, rastshpdsm_path)
-    #plot_dsmprofiles(inputdsm_path, rastshpdsm_path)
-    # export_dsmprofiles_dict(inputdsm_path, rastshpdsm_path, jsonfull_path, jsontrain_path)
