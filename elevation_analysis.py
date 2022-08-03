@@ -8,7 +8,6 @@ from osgeo import gdal, ogr
 from shapely.geometry import LineString, Point
 import cv2
 import geopandas as gpd
-import fiona
 import json
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -158,33 +157,33 @@ def chaikins_smoothing(shp_path, refinements):
 #     return pxdict
 
 
-def save_dsmprofiles(indsm_path, rastdsm_path):
-    '''Save all obtained profile values in a dictionary'''
-    pxdict = extract_rastcoords(rastdsm_path)
-    img = cv2.imread(indsm_path, -1) # returns ndarray, y-x order
-    img_smooth = cv2.GaussianBlur(img,(27,27),0) # blur (Gaussian) input DSM in order to remove noise
-    #print(type(img))
-    #print(img.shape[0], img.shape[1])
-    #graydict = defaultdict(list)
-    graydict_smooth = defaultdict(list)
-    for key in pxdict:
-        valuelist = pxdict[key]
-        pixels_of_interest = [val for sublist in valuelist for val in sublist] # flatten list of lists to a single list containing values
-        #print(pixels_of_interest)
-        indices_to_read = tuple(zip(*pixels_of_interest))  # make advanced index tuple (groups all y and x coordinates into two separate tuples)
-        #print(indices_to_read)
-        #gray_values = img[indices_to_read]  # read gray values on original DSM
-        gray_values_smooth = img_smooth[indices_to_read]  # read gray values on smoothed DSM
-        #print(gray_values)
-        #print(type(gray_values_smooth))
-        if any(value == -9999 for value in gray_values_smooth):  # if "ValueError: The truth value of an array is ambiguous", increase create_ticks distance value from 0.1 to higher
-            print("NAN values found. Double check input data. Ending code execution.")   
-            exit()
-        #graydict[key].append(gray_values)
-        graydict_smooth[key].append(gray_values_smooth) 
-    #print(graydict)
-    #print(graydict_smooth)
-    return graydict_smooth
+# def save_dsmprofiles(indsm_path, rastdsm_path):
+#     '''Save all obtained profile values in a dictionary'''
+#     pxdict = extract_rastcoords(rastdsm_path)
+#     img = cv2.imread(indsm_path, -1) # returns ndarray, y-x order
+#     img_smooth = cv2.GaussianBlur(img,(27,27),0) # blur (Gaussian) input DSM in order to remove noise
+#     #print(type(img))
+#     #print(img.shape[0], img.shape[1])
+#     #graydict = defaultdict(list)
+#     graydict_smooth = defaultdict(list)
+#     for key in pxdict:
+#         valuelist = pxdict[key]
+#         pixels_of_interest = [val for sublist in valuelist for val in sublist] # flatten list of lists to a single list containing values
+#         #print(pixels_of_interest)
+#         indices_to_read = tuple(zip(*pixels_of_interest))  # make advanced index tuple (groups all y and x coordinates into two separate tuples)
+#         #print(indices_to_read)
+#         #gray_values = img[indices_to_read]  # read gray values on original DSM
+#         gray_values_smooth = img_smooth[indices_to_read]  # read gray values on smoothed DSM
+#         #print(gray_values)
+#         #print(type(gray_values_smooth))
+#         if any(value == -9999 for value in gray_values_smooth):  # if "ValueError: The truth value of an array is ambiguous", increase create_ticks distance value from 0.1 to higher
+#             print("NAN values found. Double check input data. Ending code execution.")   
+#             exit()
+#         #graydict[key].append(gray_values)
+#         graydict_smooth[key].append(gray_values_smooth) 
+#     #print(graydict)
+#     #print(graydict_smooth)
+#     return graydict_smooth
 
 
 # def export_dsmprofiles_dict(indsm_path, rastdsm_path, json_fpath, json_tpath):

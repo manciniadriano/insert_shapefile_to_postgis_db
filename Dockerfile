@@ -16,7 +16,6 @@ RUN pip install GDAL-3.4.1-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl 
     numpy \
     opencv-python \
     requests \
-    fiona \
     psycopg2-binary
 #WORKDIR /app
 WORKDIR ${LAMBDA_TASK_ROOT}
