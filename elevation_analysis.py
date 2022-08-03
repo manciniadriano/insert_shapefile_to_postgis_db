@@ -19,16 +19,17 @@ import psycopg2
 import requests
 from io import BytesIO
 
-intrpshp_path = os.getcwd() + "/elevation_intrp.shp"
-inputshp_path = os.getcwd() + "/files/elevation.shp"   # questi due path sono diversi perchè sono contenuti nella cartella 
 # inputdsm_path = os.getcwd() + "/files/DSM.gtif"        # che viene estratta dallo zip
 # rastshpdsm_path = os.getcwd() + "/DSM_rastshp.gtif"
+inputshp_path = os.getcwd() + "/files/elevation.shp"   # questi due path sono diversi perchè sono contenuti nella cartella 
+intrpshp_path = os.getcwd() + "/elevation_intrp.shp"
 smoothshp_path = os.getcwd() + "/elevation_smooth.shp"
-chaintickshp_path = os.getcwd() + "/output_lines.shp"
 splitshp_path = os.getcwd() + "/elevation_split.shp"
-result_txt = os.getcwd()+"/result.txt"
+chaintickshp_path = os.getcwd() + "/output_lines.shp"
 # jsonfull_path = os.getcwd() + "/ElevationValues_full.json"
 # jsontrain_path = os.getcwd() + "/ElevationValues_training.json"
+
+result_txt = os.getcwd()+"/result.txt"
 
 class NumpyEncoder(json.JSONEncoder):
     """Custom JSON encoder for numpy types, since JSON does not handle them by default"""
