@@ -159,7 +159,7 @@ def download_zip (url):
     z = zipfile.ZipFile(BytesIO(req.content))
     z.extractall(os.getcwd())
 
-def run (url, distance, id):
+def run (url, distance, cantiere):
 
     # richiamo la funzione che scarica e unzippa il shapefile
     download_zip(url)    # <-- problemi qui
@@ -172,5 +172,5 @@ def run (url, distance, id):
     create_ticks(smoothshp_path,distance, 7)
 
     # invoco la funzione che inserisce i segmenti nel db
-    insert_to_db(id)
+    insert_to_db(cantiere)
     return
