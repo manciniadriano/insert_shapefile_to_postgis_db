@@ -118,8 +118,8 @@ def chaikins_smoothing(shp_path, refinements):
 def insert_to_db(idCantiere):
     #connect to the db
     # connesione al db con la stringa di connessione, aggiunta l'opzione per scegliere in seguito
-    #con = psycopg2.connect(connection_string)
-    con = psycopg2.connect(
+    #connection = psycopg2.connect(connection_string)
+    connection = psycopg2.connect(
         database="prova_gis",
         user="postgres",
         password="sinergia",
@@ -127,7 +127,7 @@ def insert_to_db(idCantiere):
         port="5432"
     )
     print("Connected...")    
-    cursor = con.cursor()
+    cursor = connection.cursor()
     print("Cursor obtained...")    
     srcFile = chaintickshp_path
     #shp = ogr.Open(chaintickshp_path) 
@@ -146,9 +146,9 @@ def insert_to_db(idCantiere):
         # with open(result_txt, "a") as file_object:
         #     # Append 'hello' at the end of file
         #     file_object.write("id: "+str(id)+" chainage: "+str(chainage)+" wkt: "+str(wkt)+"\n")
-    con.commit()
+    connection.commit()
     cursor.close()
-    con.close()
+    connection.close()
     return
 
 # funzione per download dello zip e estrazione classica del suo contenuto nella cartella corrente
