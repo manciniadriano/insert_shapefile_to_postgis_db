@@ -25,6 +25,9 @@ smoothshp_path = os.getcwd() + "/elevation_smooth.shp"
 splitshp_path = os.getcwd() + "/elevation_split.shp"
 chaintickshp_path = os.getcwd() + "/output_lines.shp"
 
+# stringa per connessione nel db
+connection_string = "postgresql://postgres:sinergia@172.17.0.2:5432/prova_gis"
+
 result_txt = os.getcwd()+"/result.txt"
 
 class NumpyEncoder(json.JSONEncoder):
@@ -110,8 +113,12 @@ def chaikins_smoothing(shp_path, refinements):
     newshp_geodf.to_file(smoothshp_path)
     return
 
+# funzione che prende lo shapefile appena creato dalla segmentazione
+# e inserisce ogni segmento in db così a tenerne traccia per le elaborazioni future
 def insert_to_db(idCantiere):
     #connect to the db
+    # connesione al db con la stringa di connessione, aggiunta l'opzione per scegliere in seguito
+    #con = psycopg2.connect(connection_string)
     con = psycopg2.connect(
         database="prova_gis",
         user="postgres",
