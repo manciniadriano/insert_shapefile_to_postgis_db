@@ -25,6 +25,11 @@ smoothshp_path = os.getcwd() + "/elevation_smooth.shp"
 splitshp_path = os.getcwd() + "/elevation_split.shp"
 chaintickshp_path = os.getcwd() + "/output_lines.shp"
 
+shp_file = chaintickshp_path
+shx_file = os.getcwd()+"/output_lines.shx"
+dbf_file = os.getcwd()+"/output_lines.dbf"
+prj_file = os.getcwd()+"/output_lines.prj"
+
 # stringa per connessione nel db
 connection_string = "postgresql://postgres:sinergia@172.17.0.2:5432/prova_gis"
 
@@ -149,7 +154,33 @@ def insert_to_db(idCantiere):
     connection.commit()
     cursor.close()
     connection.close()
-    return
+
+#prende i vari file del shp e li salva nel db
+def insert_file_shp_to_db(idCantiere):
+    shp = None
+    shx = None
+    dbf = None
+    prj = None
+    returned_id = None
+    #connect to the db
+    connection = psycopg2.connect(connection_string)
+    print("Connected...")  
+    cursor = connection.cursor()
+    print("Cursor obtained...")
+    with open(shp_file,'rb') as f:
+        shp = f.read()
+    with open(shx_file,'rb') as f:
+        shx = f.read()
+    with open(dbf_file,'rb') as f:
+        dbf = f.read()
+    with open(prj_file,'rb') as f:
+        prj = f.read()
+    cursor.execute("INSERT INTO \"shapefiles\" (id_cantiere, shp, shx, dbf, prj) VALUES(%s,%s,%s,%s,%s) RETURNING id", (idCantiere, shp, shx, dbf, prj))
+    returned_id = cursor.fetchone()[0]
+    print("L'elemento shapefiles è stato inserito con id: " + str(returned_id))
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 # funzione per download dello zip e estrazione classica del suo contenuto nella cartella corrente
 def download_zip (url):
@@ -180,4 +211,5 @@ def run (url, distance, cantiere):
 
     # invoco la funzione che inserisce i segmenti nel db
     insert_to_db(cantiere)
+    insert_file_shp_to_db(cantiere)
     return
