@@ -123,14 +123,14 @@ def chaikins_smoothing(shp_path, refinements):
 def insert_to_db(idCantiere):
     #connect to the db
     # connesione al db con la stringa di connessione, aggiunta l'opzione per scegliere in seguito
-    #connection = psycopg2.connect(connection_string)
-    connection = psycopg2.connect(
-        database="prova_gis",
-        user="postgres",
-        password="sinergia",
-        host="172.17.0.2",
-        port="5432"
-    )
+    connection = psycopg2.connect(connection_string)
+    # connection = psycopg2.connect(
+    #     database="prova_gis",
+    #     user="postgres",
+    #     password="sinergia",
+    #     host="172.17.0.2",
+    #     port="5432"
+    # )
     print("Connected...")    
     cursor = connection.cursor()
     print("Cursor obtained...")    
