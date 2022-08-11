@@ -132,7 +132,6 @@ def insert_to_db(idCantiere):
     #     port="5432"
     # )
     print("Connected...")
-    #    
     cursor = connection.cursor()
     print("Cursor obtained...")    
     srcFile = chaintickshp_path
