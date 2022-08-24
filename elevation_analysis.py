@@ -1,4 +1,5 @@
 #!/usr/local/bin/python3.9
+# encoding: utf-8#!/usr/local/bin/python3.9
 # encoding: utf-8
 
 from chaintick import create_ticks
@@ -19,21 +20,33 @@ import psycopg2
 import requests
 from io import BytesIO
 
-inputshp_path = os.getcwd() + "/files/elevation.shp"   # questi due path sono diversi perchè sono contenuti nella cartella 
-intrpshp_path = os.getcwd() + "/elevation_intrp.shp"
-smoothshp_path = os.getcwd() + "/elevation_smooth.shp"
-splitshp_path = os.getcwd() + "/elevation_split.shp"
-chaintickshp_path = os.getcwd() + "/output_lines.shp"
+# inputshp_path = os.getcwd() + "/files/elevation.shp"   # questi due path sono diversi perchè sono contenuti nella cartella 
+# intrpshp_path = os.getcwd() + "/elevation_intrp.shp"
+# smoothshp_path = os.getcwd() + "/elevation_smooth.shp"
+# splitshp_path = os.getcwd() + "/elevation_split.shp"
+# chaintickshp_path = os.getcwd() + "/output_lines.shp"
 
+tmp_path = "/tmp"
+
+inputshp_path = tmp_path + "/files/elevation.shp"   # questi due path sono diversi perchè sono contenuti nella cartella 
+intrpshp_path = tmp_path + "/elevation_intrp.shp"
+smoothshp_path = tmp_path + "/elevation_smooth.shp"
+splitshp_path = tmp_path + "/elevation_split.shp"
+chaintickshp_path = tmp_path + "/output_lines.shp"
+
+#inputshp_path = os.getcwd() + "/Linee_Tracciati.shp"   # questi due path sono diversi perchè sono contenuti nella cartella 
+# shp_file = chaintickshp_path
+# shx_file = os.getcwd()+"/output_lines.shx"
+# dbf_file = os.getcwd()+"/output_lines.dbf"
+# prj_file = os.getcwd()+"/output_lines.prj"
 shp_file = chaintickshp_path
-shx_file = os.getcwd()+"/output_lines.shx"
-dbf_file = os.getcwd()+"/output_lines.dbf"
-prj_file = os.getcwd()+"/output_lines.prj"
+shx_file = tmp_path + "/output_lines.shx"
+dbf_file = tmp_path + "/output_lines.dbf"
+prj_file = tmp_path + "/output_lines.prj"
 
 # stringa per connessione nel db
 connection_string = "postgresql://postgres:sinergia@172.17.0.2:5432/prova_gis"
-
-result_txt = os.getcwd()+"/result.txt"
+connection_string_geodatalab = "postgresql://dlproc:DL2022@aNt@185.218.126.108:5432/geonode"
 
 class NumpyEncoder(json.JSONEncoder):
     """Custom JSON encoder for numpy types, since JSON does not handle them by default"""
@@ -123,7 +136,17 @@ def chaikins_smoothing(shp_path, refinements):
 def insert_to_db(idCantiere):
     #connect to the db
     # connesione al db con la stringa di connessione, aggiunta l'opzione per scegliere in seguito
-    connection = psycopg2.connect(connection_string)
+    
+    #connection = psycopg2.connect(connection_string_geodatalab)
+    
+    connection = psycopg2.connect(
+        database="geonode",
+        user="dlproc",
+        password="DL2022@aNt",
+        host="185.218.126.108",
+        port="5432"
+    )
+
     # connection = psycopg2.connect(
     #     database="prova_gis",
     #     user="postgres",
@@ -131,19 +154,19 @@ def insert_to_db(idCantiere):
     #     host="172.17.0.2",
     #     port="5432"
     # )
-    print("Connected...")
+    print("Connected...")    
     cursor = connection.cursor()
     print("Cursor obtained...")    
     srcFile = chaintickshp_path
     #shp = ogr.Open(chaintickshp_path) 
-    shapefile = ogr.Open(srcFile) 
+    shapefile = ogr.Open(srcFile)
     layer = shapefile.GetLayer(0)    
     for i in range(layer.GetFeatureCount()):  
         feature = layer.GetFeature(i)  
         id = feature.GetField("ID")
         chainage = feature.GetField("CHAINAGE")
         wkt = feature.GetGeometryRef().ExportToWkt()
-        cursor.execute("INSERT INTO \"Segmenti\" (id,chainage,id_cantiere,id_rev,geom) " +
+        cursor.execute("INSERT INTO dlproc.segmenti (id,chainage,id_cantiere,id_rev,geom) " +
                        "VALUES (%s,%s,%s,%s, ST_GeometryFromText(%s, " +"0))", 
                         (id,chainage,idCantiere,1,wkt))
         #record = record+str(wkt)+"-"
@@ -163,7 +186,14 @@ def insert_file_shp_to_db(idCantiere):
     prj = None
     returned_id = None
     #connect to the db
-    connection = psycopg2.connect(connection_string)
+    #connection = psycopg2.connect(connection_string)
+    connection = psycopg2.connect(
+        database="geonode",
+        user="dlproc",
+        password="DL2022@aNt",
+        host="185.218.126.108",
+        port="5432"
+    )
     print("Connected...")  
     cursor = connection.cursor()
     print("Cursor obtained...")
@@ -175,7 +205,7 @@ def insert_file_shp_to_db(idCantiere):
         dbf = f.read()
     with open(prj_file,'rb') as f:
         prj = f.read()
-    cursor.execute("INSERT INTO \"shapefiles\" (id_cantiere, shp, shx, dbf, prj) VALUES(%s,%s,%s,%s,%s) RETURNING id", (idCantiere, shp, shx, dbf, prj))
+    cursor.execute("INSERT INTO dlproc.shapefiles (id_cantiere, shp, shx, dbf, prj) VALUES(%s,%s,%s,%s,%s) RETURNING id", (idCantiere, shp, shx, dbf, prj))
     returned_id = cursor.fetchone()[0]
     print("L'elemento shapefiles è stato inserito con id: " + str(returned_id))
     connection.commit()
@@ -195,7 +225,7 @@ def download_zip (url):
 
     # extracting the zip file contents
     z = zipfile.ZipFile(BytesIO(req.content))
-    z.extractall(os.getcwd())
+    z.extractall(tmp_path)
 
 def run (url, distance, cantiere):
 
@@ -209,7 +239,8 @@ def run (url, distance, cantiere):
     chaikins_smoothing(intrpshp_path, 5)   
     create_ticks(smoothshp_path,distance, 7)
 
-    # invoco la funzione che inserisce i segmenti nel db
-    insert_to_db(cantiere)
-    insert_file_shp_to_db(cantiere)
+    # # invoco la funzione che inserisce i segmenti nel db
+    # insert_to_db(cantiere)
+    # insert_file_shp_to_db(cantiere)
     return
+
