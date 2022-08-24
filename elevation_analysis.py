@@ -142,9 +142,9 @@ def insert_to_db(idCantiere):
     connection = psycopg2.connect(
         database="geonode",
         user="dlproc",
-        password="DL2022@aNt",
-        host="185.218.126.108",
-        port="5432"
+        password="pass",
+        host="localhost",
+        port="0000"
     )
 
     # connection = psycopg2.connect(
@@ -190,9 +190,9 @@ def insert_file_shp_to_db(idCantiere):
     connection = psycopg2.connect(
         database="geonode",
         user="dlproc",
-        password="DL2022@aNt",
-        host="185.218.126.108",
-        port="5432"
+        password="pass",
+        host="localhost",
+        port="0000"
     )
     print("Connected...")  
     cursor = connection.cursor()
